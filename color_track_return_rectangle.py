@@ -12,40 +12,48 @@ PIPELINE 2: COLOR TRACKER
 """
 
 colors = {}
+available_colors = "black white red green yellow light_blue orange dark_pink pink cyan dark_blue".split(" ")
+hs = 0
+ha = 0
+ss = 0
+blur = 0
+minPolygonWidth = 0
+minPolygonHeight = 0
 
 # hs is for lower hue leniency, ha is for upper hue leniency, ss is for desaturation tolerance, blur is for how
 # much blur to apply to remove noise (more blur = less noise but also worse detections far away
-hs = 20
-ha = 20
-ss = 75
-blur = 15
-minPolygonWidth = 50
-minPolygonHeight = 50
-# helper constants i got from https://cppsecrets.com/users/252310097107115104971051159911111110864103109971051084699111109/DETECTION-OF-COLOR-OF-AN-IMAGE-USING-OpenCV.php
-"""colors["lower_black"] = [0,0,0] 
-colors["upper_black"] = [50,50,100] 
-colors["lower_white"] = [0,0,0] 
-colors["upper_white"] = [0,0,255]"""
-colors["lower_red"] = [0,150-ss,50] 
-colors["upper_red"] = [10+ha,255,255] 
-colors["lower_green"] = [45-hs,150-ss,50] 
-colors["upper_green"] = [65+ha,255,255] 
-colors["lower_yellow"] = [25-hs,150-ss,50] 
-colors["upper_yellow"] = [35+ha,255,255] 
-colors["lower_light_blue"] = [95-hs,150-ss,0] 
-colors["upper_light_blue"] = [110+ha,255,255] 
-colors["lower_orange"] = [15-hs,150-ss,0] 
-colors["upper_orange"] = [25+ha,255,255] 
-colors["lower_dark_pink"] = [160-hs,150-ss,0] 
-colors["upper_dark_pink"] = [170+ha,255,255] 
-colors["lower_pink"] = [145-hs,150-ss,0]
-colors["upper_pink"] = [155+ha,255,255] 
-colors["lower_cyan"] = [85-hs,150-ss,0] 
-colors["upper_cyan"] = [95+ha,255,255] 
-colors["lower_dark_blue"] = [115-hs,150-ss,0] 
-colors["upper_dark_blue"] = [125+ha,255,255]
+def _init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 50, lminPolygonHeight = 50):
+    global colors, available_colors, hs, ha, ss, blur, minPolygonHeight, minPolygonWidth
+    hs = lhs
+    ha = lha
+    ss = lss
+    blur = lblur
+    minPolygonWidth = lminPolygonWidth
+    minPolygonHeight = lminPolygonHeight
+    # helper constants i got from https://cppsecrets.com/users/252310097107115104971051159911111110864103109971051084699111109/DETECTION-OF-COLOR-OF-AN-IMAGE-USING-OpenCV.php
+    """colors["lower_black"] = [0,0,0] 
+    colors["upper_black"] = [50,50,100] 
+    colors["lower_white"] = [0,0,0] 
+    colors["upper_white"] = [0,0,255]"""
+    colors["lower_red"] = [0,150-ss,50] 
+    colors["upper_red"] = [10+ha,255,255] 
+    colors["lower_green"] = [45-hs,150-ss,50] 
+    colors["upper_green"] = [65+ha,255,255] 
+    colors["lower_yellow"] = [25-hs,150-ss,50] 
+    colors["upper_yellow"] = [35+ha,255,255] 
+    colors["lower_light_blue"] = [95-hs,150-ss,0] 
+    colors["upper_light_blue"] = [110+ha,255,255] 
+    colors["lower_orange"] = [15-hs,150-ss,0] 
+    colors["upper_orange"] = [25+ha,255,255] 
+    colors["lower_dark_pink"] = [160-hs,150-ss,0] 
+    colors["upper_dark_pink"] = [170+ha,255,255] 
+    colors["lower_pink"] = [145-hs,150-ss,0]
+    colors["upper_pink"] = [155+ha,255,255] 
+    colors["lower_cyan"] = [85-hs,150-ss,0] 
+    colors["upper_cyan"] = [95+ha,255,255] 
+    colors["lower_dark_blue"] = [115-hs,150-ss,0] 
+    colors["upper_dark_blue"] = [125+ha,255,255]
 
-available_colors = "black white red green yellow light_blue orange dark_pink pink cyan dark_blue".split(" ")
 
 def _attempt_detection(image, filterdata):
     try:

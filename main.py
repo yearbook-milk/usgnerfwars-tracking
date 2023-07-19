@@ -4,9 +4,10 @@ import numpy as np
 import color_track_return_rectangle as ct2r
 import helpers
 
+# set up webcam acs
 device = 0
 latch = True
-detections = []
+polygons = []
 
 if device == None: device = int(input("--Which device (enter an int)? "))
 
@@ -16,10 +17,15 @@ if not cap.isOpened():
     exit(-1)
 
 
+# set up tracker with default parameters
+ct2r._init()
+
+
+# onlock handler
 def onclick(event, x, y, *argv):
     pass
     
-    
+# set up output windows
 cv2.namedWindow("input")
 cv2.namedWindow("output")
 cv2.setMouseCallback("input", onclick)
