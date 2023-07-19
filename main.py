@@ -5,7 +5,7 @@ import color_track_return_rectangle as ct2r
 import helpers
 
 # set up webcam acs
-device = None
+device = 0
 latch = True
 polygons = []
 
@@ -19,7 +19,15 @@ if not cap.isOpened():
 
 # set up tracker with default parameters
 ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 50, lminPolygonHeight = 50)
+
 only_draw_biggest_polygon = True
+
+lock = "SCAN"
+the_tracker = None
+
+rescan_on_lockbreak = True
+failed_tracks = 0
+failed_tracks_thresh = 100
 
 
 # onlock handler
@@ -40,42 +48,63 @@ while latch:
     if (ret):
         camera_input = helpers.increase_brightness(camera_input, value=10)
         cv2.imshow("input", camera_input)
-        
-        # get polygons back out of the tracking methods
+
+        # get polygons back out of the detection method if we are scanning
         polygons, output = ct2r._attempt_detection(camera_input, {"colormasks":
-        [
-            {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
-            {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},       
-            {"colormask_upper": ct2r.colors["upper_green"], "colormask_lower": ct2r.colors["lower_green"]},            
-        ]
+            [
+                {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
+                {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},       
+                {"colormask_upper": ct2r.colors["upper_green"], "colormask_lower": ct2r.colors["lower_green"]},            
+            ]
         })
-        if not only_draw_biggest_polygon:
-            for i in polygons:
-                x, y, w, h = i
-                cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
-                # if all polygons that were able to be produced are to be drawn, draw in cyan
-        else:
-            largestPolygon = (-1, -1, -1, -1)
-            for i in polygons:
-                x, y, w, h = i
-                if (w > largestPolygon[2] and h > largestPolygon[3]):
-                    largestPolygon = (x, y, w, h)
-            x, y, w, h = largestPolygon
-            cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 0, 255), 2)
-            # if only the largest polygon is being drawn, draw in magenta
             
+        if (lock == "SCAN"):
+
+            if not only_draw_biggest_polygon:
+                for i in polygons:
+                    x, y, w, h = i
+                    cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
+                    # if all polygons that were able to be produced are to be drawn, draw in cyan
+            else:
+                largestPolygon = (-1, -1, -1, -1)
+                for i in polygons:
+                    x, y, w, h = i
+                    if (w > largestPolygon[2] and h > largestPolygon[3]):
+                        largestPolygon = (x, y, w, h)
+                x, y, w, h = largestPolygon
+                polygons = [largestPolygon]
+                cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 0, 0), 2)
+                # if only the largest polygon is being drawn, draw in blue
+        elif (lock == "LOCK"):
+            if (the_tracker == None):
+                lock == "SCAN"
+                
+            success, box = the_tracker.update(camera_input)
+            if (success):
+                cv2.rectangle(camera_input, box, (0, 255, 255), 2)
+                # if the polygon is being tracked, draw in yellow
+                failed_tracks = 0
+            elif (not success) and (rescan_on_lockbreak):
+                failed_tracks += 1
+
+            if (failed_tracks >= failed_tracks_thresh):
+                the_tracker = None
+                lock = "SCAN"
+                failed_tracks = 0
             
            
-           # list FPS
-            fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
-            cv2.putText(
-                camera_input,
-                "fps:" + str(fps),
-                (5,35),
-                cv2.FONT_HERSHEY_DUPLEX,
-                0.35,
-                (255,255,0)
-            )
+       # list FPS
+        fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
+        cv2.putText(
+            camera_input,
+            " fps:" + str(fps)
+            +" mode:" + str(lock)
+            +f" letgo: {failed_tracks}/{failed_tracks_thresh}",
+            (5,35),
+            cv2.FONT_HERSHEY_DUPLEX,
+            0.35,
+            (255,255,0)
+        )
                 
             
         
@@ -86,6 +115,15 @@ while latch:
     kb = cv2.waitKey(1)
     if (kb == ord("q")):
         latch = False
+    if (kb == ord("l")):
+        the_tracker = cv2.TrackerKCF_create()
+        the_tracker.init(camera_input, polygons[0])
+        lock = "LOCK"
+        failed_tracks = 0
+    if (kb == ord("f")):
+        the_tracker = None
+        lock = "SCAN"
+        failed_tracks = 0
     
     
 # release resources when done
