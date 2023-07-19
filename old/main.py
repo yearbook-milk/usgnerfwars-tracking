@@ -80,7 +80,7 @@ hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 # open up windows and start the webcam
 cv2.namedWindow("final")
 cv2.namedWindow("dbg1")
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     println("--Webcam entry point failed to initialize!")
     exit(-1)
