@@ -13,3 +13,12 @@ def increase_brightness(img, value=30):
     final_hsv = cv2.merge((h, s, v))
     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
     return img
+
+def line(image, hw, value, color = (0,255,0)):
+    if hw == "X=":
+        for i in range(0, image.shape[0]):
+            image[i][value] = color
+    elif hw == "Y=":
+        for i in range(0, image.shape[1]):
+            image[value][i] = color
+    return image

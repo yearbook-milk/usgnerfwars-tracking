@@ -18,9 +18,9 @@ if not cap.isOpened():
 
 
 # set up tracker with default parameters
-ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 50, lminPolygonHeight = 50)
+ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 69, lminPolygonHeight = 69)
 
-only_draw_biggest_polygon = True
+only_draw_biggest_polygon = False
 
 lock = "SCAN"
 the_tracker = None
@@ -93,6 +93,8 @@ while latch:
                         (255,255,0)
                 )
                 # if only the largest polygon is being drawn, draw in blue
+
+                
         elif (lock == "LOCK"):
             if (the_tracker == None):
                 lock == "SCAN"
@@ -100,8 +102,12 @@ while latch:
             success, box = the_tracker.update(camera_input)
             if (success):
                 cv2.rectangle(camera_input, box, (0, 255, 255), 2)
+                camera_input = helpers.line(camera_input, "X=", int(box[0] + 0.5 * box[2]), (0,255,255))
+                camera_input = helpers.line(camera_input, "Y=", int(box[1] + 0.5 * box[3]), (0,255,255))
+                centerpoint = (int(box[1] + 0.5 * box[3]), int(box[0] + 0.5 * box[2]))
                 # if the polygon is being tracked, draw in yellow
                 failed_tracks = 0
+            
             elif (not success) and (rescan_on_lockbreak):
                 failed_tracks += 1
 
@@ -134,10 +140,14 @@ while latch:
     if (kb == ord("q")):
         latch = False
     if (48 <= kb <= 57):
-        the_tracker = cv2.TrackerKCF_create()
-        the_tracker.init(camera_input, polygons[kb - 48])
-        lock = "LOCK"
-        failed_tracks = 0
+        try:
+            the_tracker = cv2.TrackerKCF_create()
+            the_tracker.init(camera_input, polygons[kb - 48])
+            lock = "LOCK"
+            failed_tracks = 0
+            print("Locked on subject #"+str(kb-48))
+        except:
+            print("Failed to lock onto subjet #"+str(kb-48))
     if (kb == ord("f")):
         the_tracker = None
         lock = "SCAN"
