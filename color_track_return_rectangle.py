@@ -14,17 +14,18 @@ PIPELINE 2: COLOR TRACKER
 colors = {}
 
 # hs is for lower hue leniency, ha is for upper hue leniency, ss is for desaturation tolerance, blur is for how
-# much blur to apply to remove noise (more blur = less noise but also worse detections far away)
+# much blur to apply to remove noise (more blur = less noise but also worse detections far away
 hs = 20
 ha = 20
 ss = 75
 blur = 15
-
+minPolygonWidth = 50
+minPolygonHeight = 50
 # helper constants i got from https://cppsecrets.com/users/252310097107115104971051159911111110864103109971051084699111109/DETECTION-OF-COLOR-OF-AN-IMAGE-USING-OpenCV.php
-colors["lower_black"] = [0,0,0] 
-colors["upper_black"] = [250,255,30] 
-colors["lower_white"] = [0,0,255] 
-colors["upper_white"] = [0+ha,0,255] 
+"""colors["lower_black"] = [0,0,0] 
+colors["upper_black"] = [50,50,100] 
+colors["lower_white"] = [0,0,0] 
+colors["upper_white"] = [0,0,255]"""
 colors["lower_red"] = [0,150-ss,50] 
 colors["upper_red"] = [10+ha,255,255] 
 colors["lower_green"] = [45-hs,150-ss,50] 
@@ -59,7 +60,7 @@ def _attempt_detection(image, filterdata):
     
     # FIRST STEP IN THIS PIPELINE: APPLY COLOR MASKS
     for i in colormasks:
-        global colors, available_colors, blur
+        global colors, available_colors, blur, minPolygonHeight, minPolygonWidth
         
         image2 = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         lower_bound = np.array(i["colormask_lower"])
@@ -81,7 +82,7 @@ def _attempt_detection(image, filterdata):
     # FOURTH STEP IN THIS PIPELINE: COMPILE AND RETURN THE BOUNDING BOXES FOR THESE COUNTOURS
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)
-        if (w > 50 and h > 50):
+        if (w > minPolygonWidth and h > minPolygonHeight):
             cv2.rectangle(output, (x,y), (x+w,y+h), (255, 0, 0), 2)
             polygons.append( (x, y, w, h) )
     

@@ -34,14 +34,16 @@ while latch:
         cv2.imshow("input", camera_input)
         
         # get polygons back out of the tracking methods
-        camera_input = ct2r._attempt_detection(camera_input, {"colormasks":
+        polygons, output = ct2r._attempt_detection(camera_input, {"colormasks":
         [
             {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
-            {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},
-            {"colormask_upper": ct2r.colors["upper_cyan"], "colormask_lower": ct2r.colors["lower_cyan"]},
-            
+            {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},            
         ]
         })
+        for i in polygons:
+            x, y, w, h = i
+            cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
+            
         
         cv2.imshow("output", camera_input)
         
