@@ -19,6 +19,7 @@ if not cap.isOpened():
 
 # set up tracker with default parameters
 ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 50, lminPolygonHeight = 50)
+only_draw_biggest_polygon = True
 
 
 # onlock handler
@@ -47,9 +48,21 @@ while latch:
             {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},            
         ]
         })
-        for i in polygons:
-            x, y, w, h = i
-            cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
+        if not only_draw_biggest_polygon:
+            for i in polygons:
+                x, y, w, h = i
+                cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
+                # if all polygons that were able to be produced are to be drawn, draw in cyan
+        else:
+            largestPolygon = (-1, -1, -1, -1)
+            for i in polygons:
+                x, y, w, h = i
+                if (w > largestPolygon[2] and h > largestPolygon[3]):
+                    largestPolygon = (x, y, w, h)
+            x, y, w, h = largestPolygon
+            cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 0, 255), 2)
+            # if only the largest polygon is being drawn, draw in magenta
+                
             
         
         cv2.imshow("output", camera_input)
