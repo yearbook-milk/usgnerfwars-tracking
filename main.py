@@ -53,17 +53,27 @@ while latch:
         polygons, output = ct2r._attempt_detection(camera_input, {"colormasks":
             [
                 {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
-                {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},       
-                {"colormask_upper": ct2r.colors["upper_green"], "colormask_lower": ct2r.colors["lower_green"]},            
+                {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},
+                {"colormask_upper": ct2r.colors["upper_green"], "colormask_lower": ct2r.colors["lower_green"]},
             ]
         })
             
         if (lock == "SCAN"):
 
             if not only_draw_biggest_polygon:
+                indice = 0
                 for i in polygons:
                     x, y, w, h = i
                     cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
+                    cv2.putText(
+                        camera_input,
+                        "detection#"+str(indice),
+                        (x, y-10),
+                        cv2.FONT_HERSHEY_DUPLEX,
+                        0.50,
+                        (255,255,0)
+                    )
+                    indice += 1
                     # if all polygons that were able to be produced are to be drawn, draw in cyan
             else:
                 largestPolygon = (-1, -1, -1, -1)
@@ -74,6 +84,14 @@ while latch:
                 x, y, w, h = largestPolygon
                 polygons = [largestPolygon]
                 cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 0, 0), 2)
+                cv2.putText(
+                        camera_input,
+                        "sole detection#"+str(0),
+                        (x, y-10),
+                        cv2.FONT_HERSHEY_DUPLEX,
+                        0.50,
+                        (255,255,0)
+                )
                 # if only the largest polygon is being drawn, draw in blue
         elif (lock == "LOCK"):
             if (the_tracker == None):
@@ -99,10 +117,10 @@ while latch:
             camera_input,
             " fps:" + str(fps)
             +" mode:" + str(lock)
-            +f" letgo: {failed_tracks}/{failed_tracks_thresh}",
+            +f" release:{failed_tracks}/{failed_tracks_thresh}",
             (5,35),
             cv2.FONT_HERSHEY_DUPLEX,
-            0.35,
+            0.50,
             (255,255,0)
         )
                 
@@ -115,9 +133,9 @@ while latch:
     kb = cv2.waitKey(1)
     if (kb == ord("q")):
         latch = False
-    if (kb == ord("l")):
+    if (48 <= kb <= 57):
         the_tracker = cv2.TrackerKCF_create()
-        the_tracker.init(camera_input, polygons[0])
+        the_tracker.init(camera_input, polygons[kb - 48])
         lock = "LOCK"
         failed_tracks = 0
     if (kb == ord("f")):
