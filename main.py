@@ -18,7 +18,7 @@ if not cap.isOpened():
 
 
 # set up tracker with default parameters
-ct2r._init()
+ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 50, lminPolygonHeight = 50)
 
 
 # onlock handler
@@ -29,6 +29,7 @@ def onclick(event, x, y, *argv):
 cv2.namedWindow("input")
 cv2.namedWindow("output")
 cv2.setMouseCallback("input", onclick)
+
 
 print("Ready!")
 
