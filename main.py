@@ -20,7 +20,7 @@ if not cap.isOpened():
 # set up tracker with default parameters
 ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 69, lminPolygonHeight = 69)
 
-only_draw_biggest_polygon = False
+only_draw_biggest_polygon = True
 
 lock = "SCAN"
 the_tracker = None
@@ -62,6 +62,21 @@ while latch:
 
             if not only_draw_biggest_polygon:
                 indice = 0
+                polycopy = {}
+                # we sort the polygons by top left coordinate so that way the top most detection is always 0
+                for i in polygons:
+                    polycopy[ i[1] ] = i
+
+                print(polycopy)
+                minY = -1
+
+                myKeys = list(polycopy.keys())
+                myKeys.sort()
+                polygons = []
+                for i in myKeys:
+                    polygons.append(polycopy[i])
+                
+                
                 for i in polygons:
                     x, y, w, h = i
                     cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
@@ -119,15 +134,31 @@ while latch:
            
        # list FPS
         fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
+        if (only_draw_biggest_polygon): polset = "LargestPolygonOnly"
+        else: polset = "AllPolygonsIncluded"
         cv2.putText(
             camera_input,
-            " fps:" + str(fps)
-            +" mode:" + str(lock)
-            +f" release:{failed_tracks}/{failed_tracks_thresh}",
+            f"""CAMERA: {fps}fps  cam#{device}""".replace("\n", ""),
             (5,35),
-            cv2.FONT_HERSHEY_DUPLEX,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.50,
+            (0,255,255)
+        )
+        cv2.putText(
+            camera_input,
+            f"""AUTOLOCK: {lock} {polset} {len(polygons)}d {failed_tracks}/{failed_tracks_thresh}ftfs""".replace("\n", ""),
+            (5,55),
+            cv2.FONT_HERSHEY_SIMPLEX,
             0.50,
             (255,255,0)
+        )
+        cv2.putText(
+            camera_input,
+            f"""[0-9] Select  Target, [F] Forget Target, [O] Toggle LargestPolygonOnly, [Q] Quit""".replace("\n", ""),
+            (5,75),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            (255,255,255)
         )
                 
             
@@ -152,6 +183,8 @@ while latch:
         the_tracker = None
         lock = "SCAN"
         failed_tracks = 0
+    if (kb == ord("o")):
+        only_draw_biggest_polygon = not only_draw_biggest_polygon
     
     
 # release resources when done
