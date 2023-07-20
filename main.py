@@ -63,11 +63,10 @@ while latch:
             if not only_draw_biggest_polygon:
                 indice = 0
                 polycopy = {}
-                # we sort the polygons by top left coordinate so that way the top most detection is always 0
+                # we sort the polygons by top left coordinate so that way we the boxes dont switch numbers constantly
                 for i in polygons:
-                    polycopy[ i[1] ] = i
+                    polycopy[ i[1] + i[0] ] = i
 
-                print(polycopy)
                 minY = -1
 
                 myKeys = list(polycopy.keys())
@@ -75,7 +74,7 @@ while latch:
                 polygons = []
                 for i in myKeys:
                     polygons.append(polycopy[i])
-                
+
                 
                 for i in polygons:
                     x, y, w, h = i
@@ -98,7 +97,7 @@ while latch:
                         largestPolygon = (x, y, w, h)
                 x, y, w, h = largestPolygon
                 polygons = [largestPolygon]
-                cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 0, 0), 2)
+                cv2.rectangle(camera_input, (x,y), (x+w,y+h), (255, 255, 0), 2)
                 cv2.putText(
                         camera_input,
                         "sole detection#"+str(0),
@@ -107,7 +106,7 @@ while latch:
                         0.50,
                         (255,255,0)
                 )
-                # if only the largest polygon is being drawn, draw in blue
+                # if only the largest polygon is being drawn, draw in cyan
 
                 
         elif (lock == "LOCK"):
