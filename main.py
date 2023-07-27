@@ -145,11 +145,9 @@ while latch:
             
             for i in trackers_inuse:
                 success, box = i._update(camera_input)
-                print(f"{i}: {box}")
                 if success:
                     x += box[0]; y += box[1]; w += box[2]; h += box[3]
                     successes += 1
-            print(successes)
                 
             success = (successes > 0)
             if (success):
@@ -196,7 +194,7 @@ while latch:
         )
         cv2.putText(
             camera_input,
-            f"""[0-9] Select  Target, [F] Forget Target, [O] Toggle LargestPolygonOnly, [Q] Quit""".replace("\n", ""),
+            f"""[0-9] Choose Tgt, [F] Forget Tgt, [O] Toggle LPO, [Q] Quit, [P] Pipln Update""".replace("\n", ""),
             (5,75),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.35,
@@ -226,8 +224,10 @@ while latch:
         the_tracker = None
         lock = "SCAN"
         failed_tracks = 0
+        print("Lock released.")
     if (kb == ord("o")):
         only_draw_biggest_polygon = not only_draw_biggest_polygon
+        print(f"LargestPolygonOnly: set to {only_draw_biggest_polygon}")
     if (kb == ord("p")):
         updatePipeline()
     
