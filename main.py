@@ -30,14 +30,10 @@ failed_tracks = 0
 failed_tracks_thresh = 100
 
 
-# onlock handler
-def onclick(event, x, y, *argv):
-    pass
-    
 # set up output windows
-cv2.namedWindow("input")
+#cv2.namedWindow("input")
 cv2.namedWindow("output")
-cv2.setMouseCallback("input", onclick)
+#cv2.setMouseCallback("input", onclick)
 
 
 print("Ready!")
@@ -47,7 +43,7 @@ while latch:
     ret, camera_input = cap.read()
     if (ret):
         camera_input = helpers.increase_brightness(camera_input, value=10)
-        cv2.imshow("input", camera_input)
+        #cv2.imshow("input", camera_input)
 
         # get polygons back out of the detection method if we are scanning
         polygons, output = ct2r._attempt_detection(camera_input, {"colormasks":
@@ -177,7 +173,7 @@ while latch:
             failed_tracks = 0
             print("Locked on subject #"+str(kb-48))
         except:
-            print("Failed to lock onto subjet #"+str(kb-48))
+            print("Failed to lock onto subject #"+str(kb-48))
     if (kb == ord("f")):
         the_tracker = None
         lock = "SCAN"
