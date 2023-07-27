@@ -59,7 +59,7 @@ the_tracker = None
 rescan_on_lockbreak = True
 failed_tracks = 0
 failed_tracks_thresh = 100
-
+rsfactor = 0.75
 
 # set up output windows
 #cv2.namedWindow("input")
@@ -72,6 +72,7 @@ print("Ready!")
 while latch:
     timer = cv2.getTickCount()
     ret, camera_input = cap.read()
+    camera_input = cv2.resize(camera_input, (0,0), fx=rsfactor, fy=rsfactor) 
     if (ret):
         camera_input = helpers.increase_brightness(camera_input, value=10)
         #cv2.imshow("input", camera_input)
