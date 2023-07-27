@@ -6,6 +6,7 @@ import color_track_return_rectangle  as ct2r
 import aruco_marker_return_rectangle as am2r
 
 import cvbuiltin_kcf_tracker         as cvbits_KCF
+import aruco_marker_tracker          as amt
 
 import helpers
 
@@ -27,11 +28,11 @@ ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 69, lmin
 am2r._init()
 
 inuse = []
+trackers_inuse = []
 filterdata = {}
-the_tracker_module = cvbits_KCF
 
 def updatePipeline():
-    global inuse, filterdata, the_tracker_module
+    global inuse, filterdata, trackers_inuse
     inuse = eval(helpers.file_get_contents("detectorpipeline.txt"), {
         "ct2r": ct2r,
         "am2r": am2r,
@@ -40,11 +41,12 @@ def updatePipeline():
         "ct2r": ct2r,
         "am2r": am2r,
     })
-    the_tracker_module = eval(helpers.file_get_contents("tracker.txt"), {
+    trackers_inuse = eval(helpers.file_get_contents("tracker.txt"), {
         "cvbits_KCF": cvbits_KCF,
+        "amt": amt
     })
     
-    print(f"OK! Detection pipeline reconfigured. Using trackers {inuse} \n\n with input data {filterdata}. \n\n Tracker: {the_tracker_module}")
+    print(f"OK! Detection pipeline reconfigured. Using trackers {inuse} \n\n with input data {filterdata}. \n\n Tracker: {trackers_inuse}")
 
 updatePipeline()
 
@@ -133,11 +135,29 @@ while latch:
         elif (lock == "LOCK"):
             if (the_tracker == None):
                 lock == "SCAN"
+            
+            successes = 0
+            x = 0
+            y = 0
+            w = 0
+            h = 0
+            
+            for i in trackers_inuse:
+                success, box = i._update(camera_input)
+                print(f"{i}: {box}")
+                if success:
+                    x += box[0]; y += box[1]; w += box[2]; h += box[3]
+                    successes += 1
+            print(successes)
                 
-            success, box = the_tracker.update(camera_input)
+            success = (successes > 0)
             if (success):
-                x, y, w, h = box
-                cv2.rectangle(camera_input, (int(x), int(y), int(w), int(h)), (0, 255, 255), 2)
+                x = int(x / successes)
+                y = int(y / successes)
+                w = int(w / successes)
+                h = int(h / successes)
+                box = (x, y, w, h)
+                cv2.rectangle(camera_input, box, (0, 255, 255), 2)
                 camera_input = helpers.line(camera_input, "X=", int(box[0] + 0.5 * box[2]), (0,255,255))
                 camera_input = helpers.line(camera_input, "Y=", int(box[1] + 0.5 * box[3]), (0,255,255))
                 centerpoint = (int(box[1] + 0.5 * box[3]), int(box[0] + 0.5 * box[2]))
@@ -193,8 +213,9 @@ while latch:
         latch = False
     if (48 <= kb <= 57):
         try:
-            the_tracker = cv2.TrackerKCF_create()
-            the_tracker.init(camera_input, polygons[kb - 48])
+            for i in trackers_inuse:
+                i._init(camera_input, polygons[kb - 48])
+                print("Initialized a tracker "+str(i))
             lock = "LOCK"
             failed_tracks = 0
             print("Locked on subject #"+str(kb-48))
