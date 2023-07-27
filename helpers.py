@@ -22,3 +22,8 @@ def line(image, hw, value, color = (0,255,0)):
         for i in range(0, image.shape[1]):
             image[value][i] = color
     return image
+
+def file_get_contents(file_name):
+    with open(file_name, 'r') as file:
+        content = file.read()
+    return content

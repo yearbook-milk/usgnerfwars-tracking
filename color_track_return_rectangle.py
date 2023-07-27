@@ -54,6 +54,12 @@ def _init(lhs = hs, lha = ha, lss = ss, lblur = blur, lminPolygonWidth = minPoly
     colors["lower_dark_blue"] = [115-hs,150-ss,0] 
     colors["upper_dark_blue"] = [125+ha,255,255]
 
+def colorMasksGenerator(names):
+    global available_colors
+    output = []
+    for i in names.split(" "):
+        if i in available_colors: output.append({"colormask_upper": colors[f"upper_{i}"], "colormask_lower": colors[f"lower_{i}"]})
+    return output
 
 def _attempt_detection(image, filterdata):
     try:

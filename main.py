@@ -1,8 +1,12 @@
 print("Starting up...")
 import cv2
 import numpy as np
-import color_track_return_rectangle as ct2r
+
+import color_track_return_rectangle  as ct2r
 import aruco_marker_return_rectangle as am2r
+
+import cvbuiltin_kcf_tracker         as cvbits_KCF
+
 import helpers
 
 # set up webcam acs
@@ -22,6 +26,29 @@ if not cap.isOpened():
 ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 69, lminPolygonHeight = 69)
 am2r._init()
 
+inuse = []
+filterdata = {}
+the_tracker_module = cvbits_KCF
+
+def updatePipeline():
+    global inuse, filterdata, the_tracker_module
+    inuse = eval(helpers.file_get_contents("detectorpipeline.txt"), {
+        "ct2r": ct2r,
+        "am2r": am2r,
+    })
+    filterdata = eval(helpers.file_get_contents("detectorfilterdata.txt"), {
+        "ct2r": ct2r,
+        "am2r": am2r,
+    })
+    the_tracker_module = eval(helpers.file_get_contents("tracker.txt"), {
+        "cvbits_KCF": cvbits_KCF,
+    })
+    
+    print(f"OK! Detection pipeline reconfigured. Using trackers {inuse} \n\n with input data {filterdata}. \n\n Tracker: {the_tracker_module}")
+
+updatePipeline()
+
+# set our stuff up
 only_draw_biggest_polygon = True
 
 lock = "SCAN"
@@ -48,13 +75,9 @@ while latch:
         #cv2.imshow("input", camera_input)
 
         # get polygons back out of the detection method if we are scanning
-        polygons, output = am2r._attempt_detection(camera_input, {"colormasks":
-            [
-                {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
-                {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},
-                {"colormask_upper": ct2r.colors["upper_green"], "colormask_lower": ct2r.colors["lower_green"]},
-            ]
-        })
+        polygons = []
+        for i in inuse:
+            polygons += i._attempt_detection(camera_input, filterdata)[0]
             
         if (lock == "SCAN"):
 
@@ -183,6 +206,8 @@ while latch:
         failed_tracks = 0
     if (kb == ord("o")):
         only_draw_biggest_polygon = not only_draw_biggest_polygon
+    if (kb == ord("p")):
+        updatePipeline()
     
     
 # release resources when done
