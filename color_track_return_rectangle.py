@@ -58,8 +58,8 @@ def _init(lhs = hs, lha = ha, lss = ss, lblur = blur, lminPolygonWidth = minPoly
 def _attempt_detection(image, filterdata):
     try:
         colormasks = filterdata["colormasks"]
-    except KeyError:
-        print("Error!")
+    except Exception:
+        print("Invalid filterdata given to ct2r.py!")
         return image
     
     height, width, _ = image.shape

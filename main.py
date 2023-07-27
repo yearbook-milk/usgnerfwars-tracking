@@ -2,6 +2,7 @@ print("Starting up...")
 import cv2
 import numpy as np
 import color_track_return_rectangle as ct2r
+import aruco_marker_return_rectangle as am2r
 import helpers
 
 # set up webcam acs
@@ -19,6 +20,7 @@ if not cap.isOpened():
 
 # set up tracker with default parameters
 ct2r._init(lhs = 20, lha = 20, lss = 75, lblur = 15, lminPolygonWidth = 69, lminPolygonHeight = 69)
+am2r._init()
 
 only_draw_biggest_polygon = True
 
@@ -46,7 +48,7 @@ while latch:
         #cv2.imshow("input", camera_input)
 
         # get polygons back out of the detection method if we are scanning
-        polygons, output = ct2r._attempt_detection(camera_input, {"colormasks":
+        polygons, output = am2r._attempt_detection(camera_input, {"colormasks":
             [
                 {"colormask_upper": ct2r.colors["upper_dark_blue"], "colormask_lower": ct2r.colors["lower_dark_blue"]},
                 {"colormask_upper": ct2r.colors["upper_light_blue"], "colormask_lower": ct2r.colors["lower_light_blue"]},
@@ -111,7 +113,8 @@ while latch:
                 
             success, box = the_tracker.update(camera_input)
             if (success):
-                cv2.rectangle(camera_input, box, (0, 255, 255), 2)
+                x, y, w, h = box
+                cv2.rectangle(camera_input, (int(x), int(y), int(w), int(h)), (0, 255, 255), 2)
                 camera_input = helpers.line(camera_input, "X=", int(box[0] + 0.5 * box[2]), (0,255,255))
                 camera_input = helpers.line(camera_input, "Y=", int(box[1] + 0.5 * box[3]), (0,255,255))
                 centerpoint = (int(box[1] + 0.5 * box[3]), int(box[0] + 0.5 * box[2]))
@@ -153,7 +156,7 @@ while latch:
             (5,75),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.35,
-            (255,255,255)
+            (0,0,255)
         )
                 
             
@@ -172,8 +175,8 @@ while latch:
             lock = "LOCK"
             failed_tracks = 0
             print("Locked on subject #"+str(kb-48))
-        except:
-            print("Failed to lock onto subject #"+str(kb-48))
+        except Exception as e:
+            print("Failed to lock onto subject #"+str(kb-48)+": "+str(e))
     if (kb == ord("f")):
         the_tracker = None
         lock = "SCAN"
